@@ -1,809 +1,149 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Korebloom — Pro Korean Learning (Category-Based)</title>
-
-  <!-- Lottie for cute animations -->
-  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-
+  <title>Weather App</title>
   <style>
-    :root{
-      --baby-pink: #FFDFF0;
-      --mid-pink: #FF8FB3;
-      --dark-pink: #E33B7A;
-      --card: #fff6fb;
-      --black: #000000;
-      --muted: #5a2d45;
-      --glass: rgba(255,255,255,0.65);
-    }
+    /* Reset */
+    *{box-sizing:border-box;margin:0;padding:0;font-family: 'Arial', sans-serif}
+    html,body,#app{height:100%}
 
-    /* Reset & base */
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    /* Background gradient matching the screenshot */
     body{
-      margin:0;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: linear-gradient(180deg,var(--baby-pink) 0%, var(--mid-pink) 45%, var(--dark-pink) 100%);
-      color:var(--black);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      overflow-y:auto;
-      padding:28px 14px;
+      background: radial-gradient(circle at center, #73e59a 0%, #34c6e6 45%, #1aa0d9 100%);
+      height:100vh;display:flex;align-items:center;justify-content:center;
     }
 
-    /* layout container */
-    .app{
-      max-width:1100px;
-      margin:0 auto;
-      position:relative;
-      z-index:2;
+    /* App container */
+    .card{
+      width:900px; height:650px; border-radius:12px; position:relative; display:flex; flex-direction:column; align-items:center; padding:28px 34px;
+      /* subtle inner gradient to match lighter center */
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+      box-shadow: 0 30px 80px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.05);
     }
 
-    /* header */
-    header{
-      display:flex;
-      gap:16px;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom:18px;
-    }
-    .brand{
-      display:flex;
-      gap:12px;
-      align-items:center;
-    }
-    .brand h1{
-      margin:0;
-      font-size:28px;
-      letter-spacing:0.6px;
-      color:var(--black);
-    }
-    .subtitle{
-      margin:0;
-      color:var(--muted);
-      font-size:13px;
-    }
+    h1{font-size:40px; color:#0f2b32; margin-bottom:18px; font-weight:700}
 
-    /* top animations area */
-    .top-animations{
-      display:flex;
-      gap:8px;
-      align-items:center;
-    }
-    lottie-player{ width:72px; height:72px; border-radius:12px; background:var(--glass); padding:6px; box-shadow:0 8px 26px rgba(0,0,0,0.08) }
+    /* Search row */
+    .search-row{width:100%; display:flex; align-items:center; gap:10px}
+    .input{flex:1; height:48px; border-radius:6px; border:0; padding:10px 18px; font-size:20px;}
+    .get-btn{height:48px; min-width:140px; background:#196aa6; color:white; border-radius:6px; border:0; font-size:18px; cursor:pointer}
+    .get-btn:active{transform:translateY(1px)}
 
-    /* nav */
-    .tabs{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-bottom:16px;
-    }
-    .tab{
-      padding:10px 14px;
-      border-radius:12px;
-      border:none;
-      cursor:pointer;
-      font-weight:700;
-      background:linear-gradient(180deg,var(--mid-pink),var(--dark-pink));
-      color:white;
-      box-shadow:0 8px 22px rgba(227,59,122,0.12);
-    }
-    .tab.secondary{
-      background:transparent;
-      color:var(--black);
-      border:2px solid rgba(0,0,0,0.06);
-      box-shadow:none;
-    }
-    .tab.active{ transform:translateY(-3px); box-shadow:0 18px 40px rgba(227,59,122,0.18) }
+    /* White pill on left (decorative) */
+    .left-pill{position:absolute; left:-20px; top:50%; transform:translateY(-50%); width:32px; height:60px; border-radius:20px; background:white}
 
-    /* main area */
-    main{ display:grid; grid-template-columns: 1fr 360px; gap:18px; align-items:start; }
+    /* Center icon */
+    .icon{margin-top:36px}
+    .temp{font-size:86px; font-weight:800; color:#07201f; margin-top:12px}
+    .desc{font-size:20px; color:#0b3a3a; margin-top:8px}
 
-    /* left column */
-    .panel{
-      background:var(--card);
-      border-radius:16px;
-      padding:14px;
-      box-shadow:0 14px 36px rgba(0,0,0,0.06);
-      border:1px solid rgba(0,0,0,0.03);
-    }
+    /* Bottom stats */
+    .stats{position:absolute; left:34px; right:34px; bottom:28px; display:flex; gap:18px; justify-content:space-between}
+    .stat{flex:1; background:rgba(255,255,255,0.95); padding:18px; border-radius:10px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); text-align:left}
+    .stat h3{font-size:16px; color:#333; margin-bottom:6px}
+    .stat p{font-size:20px; font-weight:700}
 
-    .lessons-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
-      gap:12px;
-    }
-
-    .lesson{
-      padding:12px;
-      border-radius:12px;
-      background:linear-gradient(180deg,#ffffff,#fff0f7);
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      justify-content:space-between;
-      transition:transform .18s ease, box-shadow .18s ease;
-      cursor:pointer;
-      border:1px solid rgba(0,0,0,0.03);
-    }
-    .lesson:hover{ transform:translateY(-8px); box-shadow:0 22px 40px rgba(0,0,0,0.08) }
-    .lesson h3{ margin:0; font-size:16px }
-    .lesson p{ margin:0; color:var(--muted); font-size:13px }
-
-    .lesson .actions{ display:flex; gap:8px; margin-top:8px }
-    .btn{
-      padding:8px 10px;
-      border-radius:10px;
-      border:none;
-      cursor:pointer;
-      font-weight:700;
-    }
-    .btn.primary{ background:linear-gradient(180deg,var(--dark-pink),#b03062); color:white }
-    .btn.ghost{ background:transparent; border:2px solid rgba(0,0,0,0.06); color:var(--black) }
-
-    /* quiz card */
-    .quiz-card{
-      margin-top:12px;
-      padding:12px;
-      border-radius:12px;
-      background:linear-gradient(180deg,#fff,#fff6fb);
-    }
-    .q-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px }
-    .q-text{ font-weight:900; font-size:20px; margin-bottom:12px }
-    .choices{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px }
-    .choice{
-      padding:12px;
-      border-radius:10px;
-      background:white;
-      border:1px solid rgba(0,0,0,0.04);
-      font-weight:800;
-      cursor:pointer;
-      box-shadow:0 8px 18px rgba(0,0,0,0.06);
-      transition:transform .12s ease, box-shadow .12s ease;
-    }
-    .choice:hover{ transform:translateY(-6px); box-shadow:0 18px 36px rgba(0,0,0,0.08) }
-    .choice.correct{ background:linear-gradient(90deg,#dff6ea,#b8f0cc); border-color:#67d08c }
-    .choice.wrong{ background:linear-gradient(90deg,#ffdfe8,#ffcbe0); border-color:#ff8fb3 }
-
-    /* right column: scoreboard & flashcards */
-    .side{
-      position:sticky;
-      top:28px;
-      align-self:start;
-    }
-    .stat{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-      margin-bottom:10px;
-    }
-    .stat .label{ color:var(--muted); font-size:13px }
-    .stat .value{ font-weight:900 }
-
-    /* flash modal */
-    .modal{
-      position:fixed; inset:0; display:flex; justify-content:center; align-items:center;
-      background:rgba(0,0,0,0.28); z-index:50;
-    }
-    .flash{
-      width:360px; border-radius:14px; padding:18px;
-      background:linear-gradient(180deg,#fff,#fff8fb); box-shadow:0 20px 40px rgba(0,0,0,0.12);
-      text-align:center;
-    }
-    .flash .ko{ font-size:36px; font-weight:900; color:var(--dark-pink) }
-    .flash .en{ font-size:15px; color:var(--muted); margin-top:8px }
-    .flash .fc-controls{ margin-top:12px; display:flex; gap:8px; justify-content:center }
-
-    /* confetti sprites */
-    .confetti{ position:fixed; z-index:70; pointer-events:none; font-size:20px }
-
-    /* footer */
-    footer{ margin-top:18px; color:var(--muted); font-size:13px; display:flex; justify-content:space-between }
-
-    /* small screens */
-    @media(max-width:980px){
-      main{ grid-template-columns: 1fr; }
-      .side{ position:relative; top:auto; margin-top:12px }
-    }
+    /* Make it look exactly like screenshot proportions on smaller screens */
+    @media (max-width:980px){.card{width:95%;height:auto;padding:20px}}
   </style>
 </head>
 <body>
-  <div class="app">
-    <!-- header -->
-    <header>
-      <div class="brand">
-        <lottie-player src="https://assets9.lottiefiles.com/packages/lf20_touohxv0.json" background="transparent" speed="1" loop autoplay></lottie-player>
-        <div>
-          <h1>Korebloom — Pro Korean Learning</h1>
-          <p class="subtitle">Category-based quizzes • 100+ questions • cute Korea-related animations</p>
-        </div>
-      </div>
+  <div class="card" id="app">
+    <div class="left-pill"></div>
 
-      <div class="top-animations">
-        <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_7kqq3p3y.json" background="transparent" speed="1" loop autoplay></lottie-player>
-        <lottie-player src="https://assets6.lottiefiles.com/packages/lf20_7xk1b6p9.json" background="transparent" speed="1" loop autoplay></lottie-player>
-      </div>
-    </header>
+    <h1>Weather App</h1>
 
-    <!-- tabs -->
-    <div class="tabs" role="tablist" aria-label="Quiz categories">
-      <button class="tab active" data-tab="learn">Learn & Practice</button>
-      <button class="tab secondary" data-tab="quizpanel">Quick Quiz</button>
-      <button class="tab secondary" data-tab="mixed">Mixed Mode</button>
-      <button class="tab secondary" data-tab="review">Review</button>
+    <div class="search-row">
+      <input id="cityInput" class="input" value="london" />
+      <button id="getBtn" class="get-btn">Get Weather</button>
     </div>
 
-    <main>
-      <!-- left column: lessons & quiz panel -->
-      <div>
-        <div class="panel">
-          <h2 style="margin-top:0">Categories</h2>
-          <div class="lessons-grid" id="lessons">
-            <!-- lessons injected by JS -->
-          </div>
+    <div class="icon" id="iconContainer">
+      <!-- SVG cloud + moon icon to match picture -->
+      <svg width="120" height="120" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <g fill="none" fill-rule="evenodd">
+          <path d="M24 18a10 10 0 0 0-9.95 10.95A7.5 7.5 0 0 0 16.5 46h22a7 7 0 0 0 6.5-4.5A9 9 0 0 0 46 22c0-6.627-5.373-12-12-12-3.24 0-6.2 1.333-8.4 3.476A9.002 9.002 0 0 0 24 18z" fill="#ffffff" opacity="0.95"/>
+          <circle cx="44" cy="14" r="9" fill="#3c6b6b" opacity="0.95"/>
+        </g>
+      </svg>
+    </div>
 
-          <!-- quiz card (shows when a quiz is active) -->
-          <div id="quizCard" class="quiz-card panel" style="display:none; margin-top:12px;">
-            <div class="q-header">
-              <div>
-                <div id="qTitle" style="font-weight:800">Quiz</div>
-                <div id="qSub" style="color:var(--muted); font-size:13px">Category</div>
-              </div>
-              <div style="text-align:right">
-                <div style="font-size:14px; color:var(--muted)">Progress</div>
-                <div id="qProgress" style="font-weight:900">0 / 0</div>
-              </div>
-            </div>
+    <div class="temp" id="tempText">19&deg;C</div>
+    <div class="desc" id="descText">few clouds</div>
 
-            <div id="qBody">
-              <div id="qText" class="q-text">Question will appear here</div>
-              <div id="choices" class="choices"></div>
-            </div>
-
-            <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
-              <button class="btn ghost" id="skipBtn">Skip</button>
-              <button class="btn primary" id="nextBtn">Next</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- animated banner / CTA -->
-        <div class="panel" style="margin-top:12px; display:flex; gap:12px; align-items:center; justify-content:space-between;">
-          <div>
-            <h3 style="margin:0">Want a challenge?</h3>
-            <p style="margin:6px 0 0; color:var(--muted)">Try timed mixed quizzes to boost speed and retention.</p>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn primary" onclick="startMixed(20, 'timed')">20 Q Timed</button>
-            <button class="btn ghost" onclick="startMixed(40,'full')">40 Q Mixed</button>
-          </div>
-        </div>
+    <div class="stats">
+      <div class="stat">
+        <h3>Feels like</h3>
+        <p id="feels">19</p>
       </div>
 
-      <!-- right column: progress & flashcards -->
-      <aside class="side">
-        <div class="panel">
-          <div class="stat">
-            <div class="label">Overall Progress</div>
-            <div class="value" id="overallPercent">0%</div>
-          </div>
-          <div class="stat">
-            <div class="label">Last Score</div>
-            <div class="value" id="lastScore">—</div>
-          </div>
-          <div style="margin-top:10px">
-            <button class="btn primary" onclick="openFlashSelector()">Open Flashcards</button>
-            <button class="btn ghost" onclick="showReview()">Review Progress</button>
-          </div>
-        </div>
+      <div class="stat">
+        <h3>Humidity</h3>
+        <p id="humidity">58%</p>
+      </div>
 
-        <div class="panel" style="margin-top:12px">
-          <h4 style="margin:0 0 10px 0">Quick Controls</h4>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn ghost" onclick="resetProgress()">Reset Progress</button>
-            <button class="btn primary" onclick="shuffleAll()">Shuffle Questions</button>
-            <button class="btn ghost" onclick="exportProgress()">Export</button>
-          </div>
-        </div>
-      </aside>
-    </main>
-
-    <footer>
-      <div>Made by Sonal Shaktawat</div>
-      <div><small>Saved locally in your browser</small></div>
-    </footer>
-  </div>
-
-  <!-- flash modal -->
-  <div id="flashModal" class="modal" style="display:none">
-    <div class="flash">
-      <div id="flashKo" class="ko">한국어</div>
-      <div id="flashEn" class="en">English</div>
-      <div class="fc-controls" style="margin-top:12px">
-        <button class="btn primary" onclick="flipFlash()">Flip</button>
-        <button class="btn ghost" onclick="nextFlash()">Next</button>
-        <button class="btn ghost" onclick="closeFlash()">Close</button>
+      <div class="stat">
+        <h3>Wind speed</h3>
+        <p id="wind">0.89 m/s</p>
       </div>
     </div>
   </div>
-
-  <!-- confetti root -->
-  <div id="confettiRoot"></div>
 
   <script>
-    /**************************************************************************
-     * Korebloom Pro — Single-file app
-     * Category-based quiz app with many questions and cute animations
-     *
-     * Usage: paste this single HTML file into a GitHub Pages repo (index.html)
-     * and enable Pages. Fully client-side; progress saved to localStorage.
-     **************************************************************************/
+    // OPTIONAL: add your OpenWeatherMap API key here to make this functional.
+    // If you leave it empty the page will display a static demo identical to the screenshot for "london".
+    const API_KEY = 'dae989ade22601682e2c43212e733d35';
 
-    /* ------------------------------
-       DATA: Many questions per category
-       (Total > 100 items across categories)
-       ------------------------------ */
-    const CATEGORIES = {
-      hangul: {
-        title: "Hangul (Letters & Vowels)",
-        items: [
-          { ko: "ㄱ", en: "g / k" },{ ko: "ㄴ", en: "n" },{ ko: "ㄷ", en: "d / t" },{ ko: "ㄹ", en: "r / l" },
-          { ko: "ㅁ", en: "m" },{ ko: "ㅂ", en: "b / p" },{ ko: "ㅅ", en: "s" },{ ko: "ㅇ", en: "ng or silent" },
-          { ko: "ㅈ", en: "j" },{ ko: "ㅊ", en: "ch" },{ ko: "ㅋ", en: "k (aspirated)" },{ ko: "ㅌ", en: "t (aspirated)" },
-          { ko: "ㅍ", en: "p (aspirated)" },{ ko: "ㅎ", en: "h" },{ ko: "ㅏ", en: "a (as in 'father')" },{ ko: "ㅑ", en: "ya" },
-          { ko: "ㅓ", en: "eo (as in 'son')" },{ ko: "ㅕ", en: "yeo" },{ ko: "ㅗ", en: "o" },{ ko: "ㅛ", en: "yo" },
-          { ko: "ㅜ", en: "u" },{ ko: "ㅠ", en: "yu" },{ ko: "ㅡ", en: "eu" },{ ko: "ㅣ", en: "i" },
-          { ko: "ㅐ", en: "ae" },{ ko: "ㅔ", en: "e" },{ ko: "ㅒ", en: "yae" },{ ko: "ㅖ", en: "ye" },
-          // Additional syllables for variety
-          { ko: "가", en: "ga" }, { ko: "나", en: "na" }, { ko: "다", en: "da" }, { ko: "마", en: "ma" },
-          { ko: "사", en: "sa" }, { ko: "아", en: "a" }, { ko: "자", en: "ja" }, { ko: "카", en: "ka" }
-        ]
-      },
+    const cityInput = document.getElementById('cityInput');
+    const getBtn = document.getElementById('getBtn');
+    const tempText = document.getElementById('tempText');
+    const descText = document.getElementById('descText');
+    const feels = document.getElementById('feels');
+    const humidity = document.getElementById('humidity');
+    const wind = document.getElementById('wind');
 
-      numbers: {
-        title: "Numbers (Native & Sino)",
-        items: [
-          { ko: "하나", en: "1 (hana)" },{ ko: "둘", en: "2 (dul)" },{ ko: "셋", en: "3 (set)" },{ ko: "넷", en: "4 (net)" },
-          { ko: "다섯", en: "5 (daseot)" },{ ko: "여섯", en: "6 (yeoseot)" },{ ko: "일곱", en: "7 (ilgop)" },{ ko: "여덟", en: "8 (yeodeol)" },
-          { ko: "아홉", en: "9 (ahop)" },{ ko: "열", en: "10 (yeol)" },{ ko: "십", en: "10 (sino: sip)" },{ ko: "이십", en: "20 (isip)" },
-          { ko: "삼십", en: "30 (samsip)" },{ ko: "사십", en: "40 (sasip)" },{ ko: "오십", en: "50 (osip)" },{ ko: "백", en: "100 (baek)" },
-          { ko: "천", en: "1000 (cheon)" },{ ko: "만", en: "10,000 (man)" },{ ko: "일", en: "1 (sino: il)" },{ ko: "이", en: "2 (sino: i)" },
-          { ko: "삼", en: "3 (sino: sam)" },{ ko: "사", en: "4 (sino: sa)" },{ ko: "오", en: "5 (sino: o)" },{ ko: "육", en: "6 (sino: yuk)" },
-          { ko: "칠", en: "7 (sino: chil)" },{ ko: "팔", en: "8 (sino: pal)" },{ ko: "구", en: "9 (sino: gu)" },{ ko: "백만", en: "1,000,000 (baekman)" }
-        ]
-      },
-
-      body: {
-        title: "Body Parts",
-        items: [
-          { ko: "머리", en: "Head" },{ ko: "눈", en: "Eye" },{ ko: "귀", en: "Ear" },{ ko: "코", en: "Nose" },
-          { ko: "입", en: "Mouth" },{ ko: "목", en: "Neck" },{ ko: "어깨", en: "Shoulder" },{ ko: "팔", en: "Arm" },
-          { ko: "손", en: "Hand" },{ ko: "손가락", en: "Finger" },{ ko: "가슴", en: "Chest" },{ ko: "배", en: "Stomach" },
-          { ko: "등", en: "Back" },{ ko: "다리", en: "Leg" },{ ko: "무릎", en: "Knee" },{ ko: "발", en: "Foot" },
-          { ko: "발가락", en: "Toe" },{ ko: "이마", en: "Forehead" },{ ko: "턱", en: "Chin" },{ ko: "손목", en: "Wrist" }
-        ]
-      },
-
-      travel: {
-        title: "Travel Phrases",
-        items: [
-          { ko: "안녕하세요", en: "Hello" },{ ko: "감사합니다", en: "Thank you" },{ ko: "죄송합니다", en: "Sorry / Excuse me" },
-          { ko: "화장실 어디에요?", en: "Where is the bathroom?" },{ ko: "이거 얼마예요?", en: "How much is this?" },{ ko: "영어 하세요?", en: "Do you speak English?" },
-          { ko: "도와주세요", en: "I need help" },{ ko: "병원이 어디에요?", en: "Where is the hospital?" },{ ko: "택시 불러주세요", en: "Please call a taxi" },
-          { ko: "지하철역 어디에요?", en: "Where is the subway station?" },{ ko: "공항 어떻게 가요?", en: "How do I get to the airport?" },{ ko: "예약했어요", en: "I have a reservation" },
-          { ko: "메뉴 추천해주세요", en: "Please recommend a menu" },{ ko: "포장해주세요", en: "Please make it takeaway" },{ ko: "사진 찍어 주세요", en: "Please take a photo" },
-          { ko: "계산서 주세요", en: "Please bring the bill" },{ ko: "영수증 주세요", en: "Please give me a receipt" },{ ko: "카드 돼요?", en: "Do you take card?" },
-          { ko: "할인 있어요?", en: "Is there a discount?" },{ ko: "채식주의자예요", en: "I am vegetarian" },{ ko: "더 맵게 해 주세요", en: "Make it spicier please" }
-        ]
-      },
-
-      daily: {
-        title: "Daily Expressions",
-        items: [
-          { ko: "좋은 아침이에요", en: "Good morning" },{ ko: "잘 자요", en: "Good night" },{ ko: "잘 지냈어요?", en: "How have you been?" },
-          { ko: "이름이 뭐예요?", en: "What is your name?" },{ ko: "만나서 반가워요", en: "Nice to meet you" },{ ko: "천만에요", en: "You're welcome" },
-          { ko: "미안해요", en: "I'm sorry" },{ ko: "도와드릴까요?", en: "Can I help you?" },{ ko: "천천히 말해 주세요", en: "Please speak slowly" },
-          { ko: "다시 말씀해 주세요", en: "Please say that again" },{ ko: "이해했어요", en: "I understand" },{ ko: "이해하지 못했어요", en: "I don't understand" },
-          { ko: "괜찮아요", en: "It's okay" },{ ko: "맛있어요", en: "It's delicious" },{ ko: "배고파요", en: "I'm hungry" },
-          { ko: "졸려요", en: "I'm sleepy" },{ ko: "조심하세요", en: "Be careful" },{ ko: "좋아요", en: "I like it" },{ ko: "싫어요", en: "I don't like it" }
-        ]
-      }
+    // Demo data (matches the screenshot exactly)
+    const demoData = {
+      name: 'London',
+      main: { temp: 19, feels_like: 19, humidity: 58 },
+      weather: [{ description: 'few clouds' }],
+      wind: { speed: 0.89 }
     };
 
-    /* ------------------------------
-       Utility helpers
-       ------------------------------ */
-    function $(sel){ return document.querySelector(sel); }
-    function $id(id){ return document.getElementById(id); }
-    function randInt(n){ return Math.floor(Math.random()*n); }
-    function sample(arr, n=1){ const c=[...arr].sort(()=>Math.random()-0.5); return n===1?c[0]:c.slice(0,n); }
-
-    /* ------------------------------
-       Render lesson cards list
-       ------------------------------ */
-    function renderLessons(){
-      const container = document.getElementById('lessons');
-      container.innerHTML = '';
-      for(const key of Object.keys(CATEGORIES)){
-        const cat = CATEGORIES[key];
-        const div = document.createElement('div');
-        div.className = 'lesson';
-        div.innerHTML = `
-          <div>
-            <h3>${cat.title}</h3>
-            <p>${cat.items.length} items — ${cat.title.includes('Hangul') ? 'letters & syllables' : 'vocab & phrases'}</p>
-          </div>
-          <div class="actions">
-            <button class="btn primary" onclick="startCategoryQuiz('${key}', 12)">Quiz</button>
-            <button class="btn ghost" onclick="openFlashSelector('${key}')">Flashcards</button>
-          </div>
-        `;
-        container.appendChild(div);
-      }
+    function render(data){
+      const t = Math.round(data.main.temp);
+      tempText.innerHTML = t + '&deg;C';
+      descText.textContent = data.weather[0].description;
+      feels.textContent = Math.round(data.main.feels_like);
+      humidity.textContent = data.main.humidity + '%';
+      wind.textContent = data.wind.speed + ' m/s';
     }
 
-    /* ------------------------------
-       Quiz core
-       ------------------------------ */
-    let session = {
-      category: null,
-      questions: [],
-      index: 0,
-      score: 0,
-      total: 0,
-      mode: 'quick', // quick, full, timed
-      timer: null,
-      timePerQuestion: 30
-    };
-
-    function buildQuestions(categoryKey, count, mode='quick'){
-      const pool = [...CATEGORIES[categoryKey].items].map(it => ({ prompt: it.ko, answer: it.en }));
-      // if count exceeds pool, use pool length
-      const n = Math.min(count, pool.length);
-      const qs = [];
-      const used = [...pool];
-      for(let i=0;i<n;i++){
-        const idx = randInt(used.length);
-        const correct = used.splice(idx,1)[0];
-        const wrong = [];
-        while(wrong.length < 3){
-          const cand = pool[randInt(pool.length)];
-          if(cand.answer !== correct.answer && !wrong.includes(cand.answer)) wrong.push(cand.answer);
-        }
-        const choices = [correct.answer,...wrong].sort(()=>Math.random()-0.5);
-        qs.push({ prompt: correct.prompt, choices, answer: correct.answer });
-      }
-      return qs;
-    }
-
-    function startCategoryQuiz(key, count=12, mode='quick'){
-      session.category = key;
-      session.questions = buildQuestions(key, count, mode);
-      session.index = 0; session.score = 0; session.total = session.questions.length;
-      session.mode = mode;
-      showQuizCard();
-      renderQuestion();
-      // show quiz panel tab
-      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-      document.querySelector('.tab[data-tab="quizpanel"]').classList.add('active');
-    }
-
-    function showQuizCard(){
-      document.getElementById('quizCard').style.display = 'block';
-      document.getElementById('qTitle').textContent = `Quiz — ${CATEGORIES[session.category].title}`;
-      document.getElementById('qSub').textContent = `${session.total} questions`;
-      document.getElementById('qProgress').textContent = `${session.index} / ${session.total}`;
-    }
-
-    function renderQuestion(){
-      const q = session.questions[session.index];
-      document.getElementById('qText').textContent = q.prompt;
-      const choicesDiv = document.getElementById('choices');
-      choicesDiv.innerHTML = '';
-      q.choices.forEach(c=>{
-        const btn = document.createElement('button');
-        btn.className = 'choice';
-        btn.textContent = c;
-        btn.onclick = ()=> selectChoice(btn, c);
-        choicesDiv.appendChild(btn);
-      });
-      document.getElementById('qProgress').textContent = `${session.index+1} / ${session.total}`;
-      // handle timed
-      if(session.mode === 'timed'){
-        startQuestionTimer(session.timePerQuestion);
-      } else {
-        clearQuestionTimer();
-      }
-    }
-
-    function selectChoice(button, choice){
-      const q = session.questions[session.index];
-      // disable all
-      document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
-      if(choice === q.answer){
-        button.classList.add('correct');
-        session.score++;
-        flashConfetti();
-      } else {
-        button.classList.add('wrong');
-        // reveal correct
-        document.querySelectorAll('.choice').forEach(b=>{
-          if(b.textContent === q.answer) b.classList.add('correct');
-        });
-      }
-      saveProgress(session.category, session.score, session.total); // save incremental
-    }
-
-    document.getElementById('nextBtn').addEventListener('click', ()=>{
-      advanceQuestion();
-    });
-    document.getElementById('skipBtn').addEventListener('click', ()=>{
-      advanceQuestion();
-    });
-
-    function advanceQuestion(){
-      clearQuestionTimer();
-      session.index++;
-      if(session.index >= session.total){
-        finishQuiz();
+    async function fetchWeather(city){
+      if(!API_KEY){
+        // show demo (exact screenshot) only for london, otherwise show demo but replace city name
+        render(demoData);
         return;
       }
-      renderQuestion();
-    }
 
-    function finishQuiz(){
-      // hide quiz card? keep visible but show result
-      document.getElementById('qBody').innerHTML = `<div style="text-align:center"><h3>🎉 Quiz complete</h3>
-        <p style="font-weight:900; font-size:18px">${session.score} / ${session.total}</p>
-        <div style="margin-top:12px"><button class="btn primary" onclick="restartQuiz()">Retry</button>
-        <button class="btn ghost" onclick="closeQuiz()">Close</button></div></div>`;
-      // save session results
-      saveSessionResult(session.category, session.score, session.total);
-      updateOverview();
-      fireCelebration();
-    }
-
-    function restartQuiz(){
-      startCategoryQuiz(session.category, session.total, session.mode);
-    }
-
-    function closeQuiz(){
-      document.getElementById('quizCard').style.display = 'none';
-    }
-
-    /* Timed question support */
-    let questionTimer = null;
-    function startQuestionTimer(seconds){
-      clearQuestionTimer();
-      let remaining = seconds;
-      document.getElementById('qProgress').textContent = `${session.index+1}/${session.total} • ${remaining}s`;
-      questionTimer = setInterval(()=>{
-        remaining--;
-        if(remaining <= 0){
-          clearQuestionTimer();
-          // time up: treat as skip
-          advanceQuestion();
-        } else {
-          document.getElementById('qProgress').textContent = `${session.index+1}/${session.total} • ${remaining}s`;
-        }
-      }, 1000);
-    }
-    function clearQuestionTimer(){ if(questionTimer){ clearInterval(questionTimer); questionTimer = null; } }
-
-    /* ------------------------------
-       Mixed mode
-       ------------------------------ */
-    function startMixed(count=20, mode='quick'){
-      const all = [];
-      for(const k of Object.keys(CATEGORIES)){
-        for(const it of CATEGORIES[k].items){
-          all.push({ prompt: it.ko, answer: it.en });
-        }
-      }
-      // build mixed questions
-      const pool = [...all];
-      const n = Math.min(count, pool.length);
-      const qs = [];
-      for(let i=0;i<n;i++){
-        const idx = randInt(pool.length);
-        const correct = pool.splice(idx,1)[0];
-        const wrong = [];
-        while(wrong.length < 3){
-          const cand = all[randInt(all.length)];
-          if(cand.answer !== correct.answer && !wrong.includes(cand.answer)) wrong.push(cand.answer);
-        }
-        const choices = [correct.answer, ...wrong].sort(()=>Math.random()-0.5);
-        qs.push({ prompt: correct.prompt, choices, answer: correct.answer });
-      }
-      session.category = 'mixed';
-      session.questions = qs;
-      session.index = 0; session.score = 0; session.total = qs.length; session.mode = mode;
-      showQuizCard();
-      document.getElementById('qTitle').textContent = 'Mixed Quiz';
-      renderQuestion();
-      // go to quiz tab vis
-      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-      document.querySelector('.tab[data-tab="quizpanel"]').classList.add('active');
-    }
-
-    /* ------------------------------
-       Flashcards
-       ------------------------------ */
-    let flashState = { deck: [], i: 0, flipped: false };
-    function openFlashSelector(catKey){
-      // if catKey provided, open that. else default choose select modal
-      const key = catKey || 'hangul';
-      openFlash(key);
-    }
-    function openFlash(catKey){
-      flashState.deck = CATEGORIES[catKey].items.map(it => ({ko: it.ko, en: it.en}));
-      flashState.i = 0; flashState.flipped = false;
-      renderFlash();
-      document.getElementById('flashModal').style.display = 'flex';
-      // show flash modal
-    }
-    function closeFlash(){
-      document.getElementById('flashModal').style.display = 'none';
-    }
-    function renderFlash(){
-      const cur = flashState.deck[flashState.i];
-      document.getElementById('flashKo').textContent = cur.ko;
-      document.getElementById('flashEn').textContent = flashState.flipped ? cur.en : '';
-    }
-    function flipFlash(){ flashState.flipped = !flashState.flipped; renderFlash(); }
-    function nextFlash(){ flashState.i = (flashState.i + 1) % flashState.deck.length; flashState.flipped = false; renderFlash(); }
-
-    /* ------------------------------
-       Progress saving & leaderboard (local)
-       ------------------------------ */
-    function saveProgress(cat, score, total){
-      const key = 'korebloom_progress_v1';
-      const store = JSON.parse(localStorage.getItem(key) || '{}');
-      store[cat] = Math.max(store[cat] || 0, Math.round((score/Math.max(1,total))*100));
-      localStorage.setItem(key, JSON.stringify(store));
-      updateOverview();
-    }
-
-    function saveSessionResult(cat, score, total){
-      const key = 'korebloom_sessions_v1';
-      const arr = JSON.parse(localStorage.getItem(key) || '[]');
-      arr.push({ cat, score, total, ts: new Date().toISOString() });
-      if(arr.length > 200) arr.shift();
-      localStorage.setItem(key, JSON.stringify(arr));
-      document.getElementById('lastScore').textContent = `${score}/${total}`;
-    }
-
-    function updateOverview(){
-      const key = 'korebloom_progress_v1';
-      const store = JSON.parse(localStorage.getItem(key) || '{}');
-      let sum=0, cnt=0;
-      for(const k in store){ sum+=store[k]; cnt++; }
-      const percent = cnt? Math.round(sum/cnt) : 0;
-      document.getElementById('overallPercent').textContent = percent + '%';
-    }
-
-    function showReview(){
-      const key = 'korebloom_progress_v1';
-      const store = JSON.parse(localStorage.getItem(key) || '{}');
-      const sessions = JSON.parse(localStorage.getItem('korebloom_sessions_v1') || '[]').slice().reverse().slice(0,12);
-      const html = `
-        <h3 style="margin-top:0">Review</h3>
-        <div style="margin-bottom:8px"><strong>Progress:</strong><pre>${JSON.stringify(store, null, 2)}</pre></div>
-        <div><strong>Recent sessions:</strong>
-          <ol>${sessions.map(s=>`<li>${s.cat} — ${s.score}/${s.total} — ${new Date(s.ts).toLocaleString()}</li>`).join('')}</ol>
-        </div>
-      `;
-      // show in a modal-like panel
-      const panel = document.createElement('div');
-      panel.className = 'modal';
-      panel.innerHTML = `<div class="flash" style="width:520px; max-width:92%">${html}<div style="margin-top:12px"><button class="btn ghost" onclick="document.body.removeChild(this.parentElement.parentElement)">Close</button></div></div>`;
-      document.body.appendChild(panel);
-    }
-
-    function resetProgress(){
-      if(confirm('Clear all saved progress and sessions?')){
-        localStorage.removeItem('korebloom_progress_v1');
-        localStorage.removeItem('korebloom_sessions_v1');
-        updateOverview();
-        alert('Progress cleared.');
+      try{
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&appid=${API_KEY}`);
+        if(!res.ok) throw new Error('City not found');
+        const data = await res.json();
+        render(data);
+      }catch(e){
+        alert('Error fetching weather: '+e.message);
       }
     }
 
-    function exportProgress(){
-      const p = localStorage.getItem('korebloom_progress_v1') || '{}';
-      const a = document.createElement('a');
-      a.href = 'data:application/json,' + encodeURIComponent(p);
-      a.download = 'korebloom_progress.json';
-      a.click();
-    }
+    // initial demo render to match screenshot exactly
+    render(demoData);
 
-    /* ------------------------------
-       UI utilities: confetti & celebration
-       ------------------------------ */
-    function flashConfetti(){
-      const root = document.getElementById('confettiRoot');
-      for(let i=0;i<10;i++){
-        const el = document.createElement('div');
-        el.className = 'confetti';
-        el.style.left = (30 + Math.random()*40) + '%';
-        el.style.top = (40 + Math.random()*30) + '%';
-        el.textContent = ['✨','🌸','💗','⭐'][Math.floor(Math.random()*4)];
-        document.body.appendChild(el);
-        el.animate([{opacity:1, transform:'translateY(0) scale(1)'},{opacity:0, transform:'translateY(-80px) scale(.5)'}], { duration: 900 + Math.random()*500 });
-        setTimeout(()=>el.remove(), 1200);
-      }
-    }
-
-    function fireCelebration(){
-      // show larger lottie celebration overlay
-      const overlay = document.createElement('div');
-      overlay.className = 'modal';
-      overlay.innerHTML = `<div style="width:420px; max-width:92%; text-align:center; padding:12px; background:linear-gradient(180deg,#fff,#fff6fb); border-radius:12px;">
-        <lottie-player src="https://assets9.lottiefiles.com/packages/lf20_jbrw3hcz.json"  background="transparent"  speed="1"  style="width:220px; height:220px; margin:auto"  loop autoplay></lottie-player>
-        <h3>Well done! 🎉</h3>
-        <p style="color:${'#5a2d45'}">Your result has been saved locally.</p>
-        <div style="margin-top:12px"><button class="btn primary" onclick="document.body.removeChild(this.parentElement.parentElement)">Close</button></div>
-      </div>`;
-      document.body.appendChild(overlay);
-    }
-
-    /* ------------------------------
-       Extras: shuffle all questions / small helpers
-       ------------------------------ */
-    function shuffleAll(){
-      for(const k of Object.keys(CATEGORIES)){
-        CATEGORIES[k].items.sort(()=>Math.random()-0.5);
-      }
-      renderLessons();
-      tinyGlow();
-    }
-    function tinyGlow(){
-      const h = document.querySelector('.brand h1');
-      h.animate([{ transform: 'translateY(0)', filter:'drop-shadow(0 0 0 transparent)' }, { transform:'translateY(-4px)', filter:'drop-shadow(0 18px 40px rgba(227,59,122,0.12))' }], { duration: 700 });
-    }
-
-    /* ------------------------------
-       Initialization wiring
-       ------------------------------ */
-    document.addEventListener('DOMContentLoaded', ()=>{
-      renderLessons();
-      updateOverview();
-      // tab clicks
-      document.querySelectorAll('.tab').forEach(t=>{
-        t.addEventListener('click', ()=> {
-          document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-          t.classList.add('active');
-          const sec = t.getAttribute('data-tab');
-          // switch to learn / quizpanel / mixed / review
-          if(sec === 'learn'){ /* nothing to do, lessons visible by default */ }
-          if(sec === 'quizpanel'){ /* show quiz UI if active */ }
-          if(sec === 'mixed'){ startMixed(20,'quick'); }
-          if(sec === 'review'){ showReview(); }
-        });
-      });
-
-      // quick controls already wired above
-    });
-
-    /* expose some functions for onclick attributes */
-    window.startCategoryQuiz = startCategoryQuiz;
-    window.startMixed = startMixed;
-    window.openFlashSelector = openFlashSelector;
-    window.openFlash = openFlash;
-    window.closeFlash = closeFlash;
-    window.flipFlash = flipFlash;
-    window.nextFlash = nextFlash;
-    window.shuffleAll = shuffleAll;
-    window.resetProgress = resetProgress;
-    window.exportProgress = exportProgress;
-    window.showReview = showReview;
-    window.startRandomChallenge = () => startMixed(30,'timed');
-    window.startQuizMode = (lesson, mode) => startCategoryQuiz(lesson, CATEGORIES[lesson].items.length, mode);
-
+    getBtn.addEventListener('click', ()=>fetchWeather(cityInput.value.trim()));
+    cityInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') fetchWeather(cityInput.value.trim()); });
   </script>
 </body>
 </html>
+
