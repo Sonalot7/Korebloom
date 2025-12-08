@@ -92,58 +92,139 @@
   </div>
 
   <script>
-    // OPTIONAL: add your OpenWeatherMap API key here to make this functional.
-    // If you leave it empty the page will display a static demo identical to the screenshot for "london".
-    const API_KEY = 'dae989ade22601682e2c43212e733d35';
+const API_KEY = 'dae989ade22601682e2c43212e733d35';
 
-    const cityInput = document.getElementById('cityInput');
-    const getBtn = document.getElementById('getBtn');
-    const tempText = document.getElementById('tempText');
-    const descText = document.getElementById('descText');
-    const feels = document.getElementById('feels');
-    const humidity = document.getElementById('humidity');
-    const wind = document.getElementById('wind');
+const cityInput = document.getElementById('cityInput');
+const getBtn = document.getElementById('getBtn');
+const tempText = document.getElementById('tempText');
+const descText = document.getElementById('descText');
+const feels = document.getElementById('feels');
+const humidity = document.getElementById('humidity');
+const wind = document.getElementById('wind');
+const iconContainer = document.getElementById("iconContainer");
 
-    // Demo data (matches the screenshot exactly)
-    const demoData = {
-      name: 'London',
-      main: { temp: 19, feels_like: 19, humidity: 58 },
-      weather: [{ description: 'few clouds' }],
-      wind: { speed: 0.89 }
-    };
+// Map OpenWeather icon code → our custom SVG icons
+function getWeatherIcon(code) {
+    // Clear sky
+    if (code === "01d") return sunIcon();
+    if (code === "01n") return moonIcon();
 
-    function render(data){
-      const t = Math.round(data.main.temp);
-      tempText.innerHTML = t + '&deg;C';
-      descText.textContent = data.weather[0].description;
-      feels.textContent = Math.round(data.main.feels_like);
-      humidity.textContent = data.main.humidity + '%';
-      wind.textContent = data.wind.speed + ' m/s';
-    }
+    // Few clouds
+    if (code === "02d" || code === "02n") return cloudSunIcon();
 
-    async function fetchWeather(city){
-      if(!API_KEY){
-        // show demo (exact screenshot) only for london, otherwise show demo but replace city name
-        render(demoData);
-        return;
-      }
+    // Scattered/broken clouds
+    if (code === "03d" || code === "03n" || code === "04d" || code === "04n") 
+        return cloudIcon();
 
-      try{
+    // Rain
+    if (code.startsWith("09") || code.startsWith("10")) return rainIcon();
+
+    // Thunderstorm
+    if (code.startsWith("11")) return thunderIcon();
+
+    // Snow
+    if (code.startsWith("13")) return snowIcon();
+
+    // Mist / fog / haze
+    if (code.startsWith("50")) return fogIcon();
+
+    return cloudIcon();
+}
+
+// Icons (SVG)
+function sunIcon() {
+    return `
+    <svg width="120" height="120" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="14" fill="#FFD93B"/>
+    </svg>`;
+}
+
+function moonIcon() {
+    return `
+    <svg width="120" height="120" viewBox="0 0 64 64">
+        <path d="M40 2a22 22 0 1 0 20 32A20 20 0 0 1 40 2z" fill="#BFCBD9"/>
+    </svg>`;
+}
+
+function cloudSunIcon() {
+    return `
+    <svg width="120" height="120" viewBox="0 0 64 64">
+      <circle cx="20" cy="20" r="10" fill="#FFD93B"/>
+      <ellipse cx="38" cy="36" rx="16" ry="10" fill="#fff"/>
+    </svg>`;
+}
+
+function cloudIcon() {
+    return `
+    <svg width="120" height="120" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="36" rx="20" ry="12" fill="#fff"/>
+    </svg>`;
+}
+
+function rainIcon() {
+    return `
+    <svg width="120" height="120" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="28" rx="18" ry="10" fill="#fff"/>
+      <line x1="22" y1="40" x2="22" y2="54" stroke="#78A6FF" stroke-width="4"/>
+      <line x1="32" y1="40" x2="32" y2="54" stroke="#78A6FF" stroke-width="4"/>
+      <line x1="42" y1="40" x2="42" y2="54" stroke="#78A6FF" stroke-width="4"/>
+    </svg>`;
+}
+
+function thunderIcon() {
+    return `
+    <svg width="120" height="120" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="28" rx="18" ry="10" fill="#fff"/>
+      <polygon points="30,40 38,40 32,54 40,54" fill="#FFB000"/>
+    </svg>`;
+}
+
+function snowIcon() {
+    return `
+    <svg width="120" height="120" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="28" rx="18" ry="10" fill="#fff"/>
+      <text x="26" y="54" font-size="28">❄</text>
+    </svg>`;
+}
+
+function fogIcon() {
+    return `
+    <svg width="120" height="120" viewBox="0 0 64 64">
+      <rect x="10" y="28" width="44" height="6" fill="#dfe4ea"/>
+      <rect x="12" y="38" width="40" height="6" fill="#dfe4ea"/>
+      <rect x="8"  y="48" width="48" height="6" fill="#dfe4ea"/>
+    </svg>`;
+}
+
+
+// Render weather data
+function render(data){
+    const t = Math.round(data.main.temp);
+    tempText.innerHTML = t + '&deg;C';
+    descText.textContent = data.weather[0].description;
+    feels.textContent = Math.round(data.main.feels_like);
+    humidity.textContent = data.main.humidity + '%';
+    wind.textContent = data.wind.speed + ' m/s';
+
+    // PUT ICON
+    const iconCode = data.weather[0].icon;
+    iconContainer.innerHTML = getWeatherIcon(iconCode);
+}
+
+async function fetchWeather(city){
+    try{
         const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&appid=${API_KEY}`);
         if(!res.ok) throw new Error('City not found');
         const data = await res.json();
         render(data);
-      }catch(e){
+    }catch(e){
         alert('Error fetching weather: '+e.message);
-      }
     }
+}
 
-    // initial demo render to match screenshot exactly
-    render(demoData);
+// Initial demo
+fetchWeather("London");
 
-    getBtn.addEventListener('click', ()=>fetchWeather(cityInput.value.trim()));
-    cityInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') fetchWeather(cityInput.value.trim()); });
-  </script>
-</body>
-</html>
-
+getBtn.addEventListener('click', ()=>fetchWeather(cityInput.value.trim()));
+cityInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') fetchWeather(cityInput.value.trim()); });
+</script>
